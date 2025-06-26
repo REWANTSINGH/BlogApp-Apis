@@ -31,3 +31,25 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Java
+/target/
+*.iml
+*.class
+*.log
+*.jar
+*.war
+*.ear
+
+# IDEs
+/.idea/
+/.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Sensitive files
+src/main/resources/application.properties
+src/main/resources/application-prod.properties
