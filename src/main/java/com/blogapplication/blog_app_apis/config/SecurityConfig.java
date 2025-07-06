@@ -26,18 +26,6 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    public static final String[] PUBLIC_URLS = {
-        "/api/v1/auth/**",
-        "/v3/api-docs",
-        "/v2/api-docs",
-        "/swagger-resources/**",
-        "/swagger-ui/**",
-        "/webjars/**",
-        // Uncomment the following lines if you want to allow access to these endpoints without authentication
-        // "/swagger-ui.html",
-        // "/api/v1/auth/login",
-        // "/api/v1/auth/register"
-    };
 
     @Autowired
     private CustomUserDetailService customUserDetailService;
@@ -48,13 +36,25 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    public static final String[] PUBLIC_URLS = {
+    "/api/v1/auth/**",
+    "/v3/api-docs/**",
+    "/v3/api-docs",
+    "/v2/api-docs/**",
+    "/swagger-resources/**",
+    "/swagger-ui/**",
+    "/swagger-ui.html",
+    "/webjars/**"
+};
+    
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf().disable()
-            .authorizeHttpRequests(auth -> auth
-            .requestMatchers(PUBLIC_URLS).permitAll()
-                .anyRequest().authenticated()
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> 
+                auth
+                    .requestMatchers(PUBLIC_URLS).permitAll()
+                    .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint)

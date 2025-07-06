@@ -2,6 +2,8 @@ package com.blogapplication.blog_app_apis.Security;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,19 +23,22 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
+
+
     @Autowired
     private UserDetailsService userDetailsService;
 
     @Autowired
     private JwtTokenHelper jwtTokenHelper;
 
-    @Override
+     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
         // 1. Get token from header
         String requestToken = request.getHeader("Authorization");
-        System.out.println(requestToken);
+        logger.info(" Header : {} ",requestToken);
 
         String username = null;
         String token = null;
@@ -43,14 +48,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 username = this.jwtTokenHelper.getUsernameFromToken(token);
             } catch (IllegalArgumentException e) {
-                System.out.println("Unable to get JWT token");
+                logger.info("Unable to get JWT token");
+                e.printStackTrace();
+
             } catch (ExpiredJwtException e) {
-                System.out.println("JWT token has expired");
+                logger.info("JWT token has expired");
+                e.printStackTrace();
             } catch (MalformedJwtException e) {
-                System.out.println("JWT token is malformed or invalid");
+                logger.info("JWT token is malformed or invalid");
+                e.printStackTrace();
             }
         } else {
-            System.out.println("JWT token does not begin with Bearer");
+            logger.info("JWT token does not begin with Bearer");
         }
 
         // 2. Validate token and set authentication
@@ -63,22 +72,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-            } else {
-                System.out.println("Unable to validate token or invalid JWT token");
-            }
+            } 
+            else {
+                logger.info("Unable to validate token or invalid JWT token");
+            } 
         } else {
-            System.out.println("Username is null or security context already has authentication");
+            logger.info("Username is null or security context already has authentication");
         }
 
         // ✅ Important to allow the request to proceed
         filterChain.doFilter(request, response);
     }
 
-
     @Override
-protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-    String path = request.getServletPath();
-    return path.equals("/api/v1/auth/login");
-}
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        boolean skip = path.startsWith("/api/v1/auth/")
+            || path.equals("/v3/api-docs")
+            || path.startsWith("/v3/api-docs/")
+            || path.startsWith("/v2/api-docs")
+            || path.startsWith("/swagger-ui")
+            || path.startsWith("/swagger-resources")
+            || path.startsWith("/webjars")
+            || path.equals("/swagger-ui.html");
+        logger.info("shouldNotFilter for path {}: {}", path, skip);
+        return skip;
+    }
+
 
 }

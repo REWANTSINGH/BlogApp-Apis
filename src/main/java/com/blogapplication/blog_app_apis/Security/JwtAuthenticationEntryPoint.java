@@ -1,6 +1,7 @@
 package com.blogapplication.blog_app_apis.Security;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -15,7 +16,9 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint{
     
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Access Denied");
+         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        PrintWriter writer = response.getWriter();
+        writer.println("Unauthorized: " + authException.getMessage());
     }
     
 }
